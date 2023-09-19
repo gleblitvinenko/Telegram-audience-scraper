@@ -39,6 +39,13 @@ class States(StatesGroup):
 
 @router.message(Command("start"))
 async def start(message: types.Message, state: FSMContext):
+    """
+        Handle the /start command to start the bot and provide the main menu.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     telegram_id = message.from_user.id
     if not db_manager.is_user_exists(telegram_id=telegram_id):
         db_manager.create_user(telegram_id=telegram_id)
@@ -59,6 +66,13 @@ async def start(message: types.Message, state: FSMContext):
 @router.message(F.text == tt.scrape_chat.get("ru"))
 @router.message(F.text == tt.scrape_chat.get("ua"))
 async def scrape_group(message: types.Message, state: FSMContext):
+    """
+        Handle the command to initiate group scraping.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language = state_data["language"]
     await message.answer(text=tt.input_group_link.get(language))
@@ -67,6 +81,13 @@ async def scrape_group(message: types.Message, state: FSMContext):
 
 @router.message(F.text, States.input_group_url)
 async def input_group_url(message: types.Message, state: FSMContext):
+    """
+        Handle the user input for the group URL.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language = state_data["language"]
     await state.update_data(url=message.text)
@@ -76,6 +97,13 @@ async def input_group_url(message: types.Message, state: FSMContext):
 
 @router.message(F.text, States.input_group_users_number)
 async def input_group_users_number(message: types.Message, state: FSMContext):
+    """
+        Handle user input of the number of users for group scraping.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language, url, number_of_users = (
         state_data["language"],
@@ -99,6 +127,15 @@ async def send_scraped_group_file(
     state: FSMContext,
     number_of_users: int = None,
 ) -> None:
+    """
+        Send the scraped data for a group as a file to the user.
+
+        Args:
+            message (types.Message): The message object.
+            group_url (str): The URL of the group being scraped.
+            state (FSMContext): The FSMContext to track the user's state.
+            number_of_users (int, optional): The number of users to scrape. Defaults to None.
+    """
     state_data = await state.get_data()
     language = state_data["language"]
     try:
@@ -141,6 +178,13 @@ async def send_scraped_group_file(
 @router.message(F.text == tt.scrape_channel.get("ru"))
 @router.message(F.text == tt.scrape_channel.get("ru"))
 async def scrape_channel(message: types.Message, state: FSMContext):
+    """
+        Initiate the process of scraping a channel based on user input.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language = state_data.get("language")
     await message.answer(text=tt.input_channel_link.get(language))
@@ -149,6 +193,13 @@ async def scrape_channel(message: types.Message, state: FSMContext):
 
 @router.message(F.text, States.input_channel_url)
 async def input_group_url(message: types.Message, state: FSMContext):
+    """
+        Handle user input of the channel URL during the scraping process.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language = state_data["language"]
     await state.update_data(url=message.text)
@@ -158,6 +209,13 @@ async def input_group_url(message: types.Message, state: FSMContext):
 
 @router.message(F.text, States.input_channel_users_number)
 async def input_group_users_number(message: types.Message, state: FSMContext):
+    """
+        Handle user input of the number of users for channel scraping.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language, url, number_of_users = (
         state_data["language"],
@@ -181,6 +239,15 @@ async def send_scraped_channel_file(
     state: FSMContext,
     number_of_users: int = None,
 ) -> None:
+    """
+        Send the scraped data for a channel as a file to the user.
+
+        Args:
+            message (types.Message): The message object.
+            channel_url (str): The URL of the channel being scraped.
+            state (FSMContext): The FSMContext to track the user's state.
+            number_of_users (int, optional): The number of users to scrape. Defaults to None.
+    """
     state_data = await state.get_data()
     language = state_data["language"]
     try:
@@ -225,6 +292,13 @@ async def send_scraped_channel_file(
 @router.message(F.text == tt.language.get("ru"))
 @router.message(F.text == tt.language.get("ua"))
 async def show_language(message: types.Message, state: FSMContext):
+    """
+        Show language selection options to the user.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     state_data = await state.get_data()
     language = state_data["language"]
     await message.answer(
@@ -238,6 +312,13 @@ async def show_language(message: types.Message, state: FSMContext):
 @router.message(F.text == tt.ru_lang.get("ru"), States.choosing_language)
 @router.message(F.text == tt.ru_lang.get("ua"), States.choosing_language)
 async def choose_language(message: types.Message, state: FSMContext):
+    """
+        Handle the user's choice of Russian language.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     await state.clear()
     telegram_id = message.from_user.id
     db_manager.change_language(telegram_id=telegram_id, language="ru")
@@ -252,6 +333,13 @@ async def choose_language(message: types.Message, state: FSMContext):
 @router.message(F.text == tt.ua_lang.get("ru"), States.choosing_language)
 @router.message(F.text == tt.ua_lang.get("ua"), States.choosing_language)
 async def choose_language(message: types.Message, state: FSMContext):
+    """
+        Handle the user's choice of Ukrainian language.
+
+        Args:
+            message (types.Message): The message object.
+            state (FSMContext): The FSMContext to track the user's state.
+    """
     await state.clear()
     telegram_id = message.from_user.id
     db_manager.change_language(telegram_id=telegram_id, language="ua")
@@ -264,6 +352,9 @@ async def choose_language(message: types.Message, state: FSMContext):
 
 
 async def main():
+    """
+        Run the main function to start the bot and handle incoming updates.
+    """
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
